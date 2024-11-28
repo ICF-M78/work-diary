@@ -1,0 +1,42 @@
+{
+  "name": "work-diary",
+  "displayName": "Work Diary",
+  "description": "根据提交记录，生成工作日志。",
+  "version": "0.0.1",
+  "publisher": "wujingtao",
+  "author": "wujingtao",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ICF-M78/work-diary.git"
+  },
+  "icon": "images/log.jpg",
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "work-diary.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "pnpm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "@types/mocha": "^10.0.8",
+    "@types/node": "20.x",
+    "eslint": "^9.11.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
