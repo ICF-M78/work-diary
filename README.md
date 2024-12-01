@@ -1,65 +1,77 @@
-# work-diary README
+# 工作日志（Work Diary）
 
-This is the README for your extension "work-diary". After writing up a brief description, we recommend including the following sections.
+## 简介
 
-## Features
+生成周报。
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## 功能
 
-For example if there is an image subfolder under your extension project workspace:
+利用当前项目的提交记录，自动生成周报。
+避免工作里面重复恶心的部分。
 
-\!\[feature X\]\(images/feature-x.png\)
+## 要求
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+- 规范提价，使用`回车`，`换行`来分割不同的内容。
+- 鼓励多提交，每做完一个功能就提交。
 
-## Requirements
+_好处是：_
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+1.  代码回溯更加方便；
+2.  使得您的周报内容翔实；
+3.  并且保证你的代码足够的安全；
 
-## Extension Settings
+_比如：我编写一个提交说明_
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+```
+暂时保存，将继续开发时间组件部分。
+1、修复了时间组件BUG；
+2、增加了时间组件的测试用例；
+3、增加了时间组件的文档；
+```
 
-For example:
+## 使用
 
-This extension contributes the following settings:
+_打开命令面板_
+_MacOs `Command+Shift+P`_
+_Windows/Linux `Ctrl+Shift+P`_
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+1. 打开命令面板，输入`Get Work Diary`；
+2. 根据提示输入开始时间，不输入默认 7 天前；
+3. 根据提示输入结束时间，不输入默认今天；
 
-## Known Issues
+在当前目录生成类似`工作日志 2024-11-24到2024-12-01.md` 的文件。
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+#### 工作日志 `2024-11-24 到 2024-12-01.md` 格式如下：
 
-## Release Notes
+```markdown
+### 2024-11-25 星期一
 
-Users appreciate release notes as you update your extension.
+**_15:38:3_**
+删除还未开始编写的药房入库模块
 
-### 1.0.0
+**_11:34:2_**
+合并的时候不小心多删除了一个文件，补充此文件
 
-Initial release of ...
+**_11:31:4_**
+针对 todo 文件作出修改
 
-### 1.0.1
+- [1] 清晰了各个开发者的 TODO 目录
+- [2] 删除了老版本混乱的 TODO.js 文件
 
-Fixed issue #.
+**_11:20:3_**
 
-### 1.1.0
+- [1] 涉及到隐藏项目的焦点跳动，新增了从焦点列表删除被隐藏项目的逻辑
+- [2] 在跳转之前，使用了 nextTick，等待被隐藏项目变更
+```
 
-Added features X, Y, and Z.
+之后你就可以把这个东西放在“钉钉”或者其他什么地方去了。
+
+![1](images/1.png)
+
+![2](images/2.png)
+![3](images/3.png)
+![4](images/4.png)
 
 ---
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+![5](images/5.png)
