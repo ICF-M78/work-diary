@@ -2,39 +2,41 @@ const vscode = require("vscode");
 const dayjs = require("dayjs");
 const { execSync } = require("child_process");
 
-function getGitLogJson(begTime, endTime, currentFolder) {
+function getGitLogJson(begTime, endTime, currentFolder, author) {
+  let gitCommand = "";
   try {
-    let author = execSync("git config user.name").toString().trim();
     // 为了避免提交记录中出现json关键符号
-    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:"<git-commit>author->%an|date->%ad|message->%s</git-commit>\n" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
+    gitCommand = `git log --since="${begTime}" --until="${endTime}" --author="${author}" --no-merges --pretty=format:"<git-commit>author->%an|date->%ad|message->%s</git-commit>\n" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
     let jsonStr = execSync(gitCommand, { cwd: currentFolder }).toString();
     if (!jsonStr) {
-      throw new Error("此时间段内，无提交记录。");
+      throw new Error(`${author}在此时间段内，无提交记录。`);
     }
     // 正则
     const regex1 = /<git-commit>(.*?)<\/git-commit>\n/g;
     const _arr = jsonStr.match(regex1);
     if (!_arr) {
-      throw new Error("此时间段内，无提交记录。");
+      throw new Error(`${author}在此时间段内，无提交记录。`);
     }
     if (_arr.length === 0) {
-      throw new Error("此时间段内，无提交记录。");
+      throw new Error(`${author}在此时间段内，无提交记录。`);
     }
     const ls = [];
     for (const _str of _arr) {
       const regex2 =
         /author->([\w]+)\|date->([0-9\-: a-zA-z]+)\|message->([\s\S]+)<\/git-commit>/g;
-      const _arr2 = regex2.exec(_str);
-      ls.push({
-        author: _arr2[1],
-        date: _arr2[2],
-        message: _arr2[3],
-      });
+      const params = regex2.exec(_str);
+      if (params !== null) {
+        ls.push({
+          author: params[1],
+          date: params[2],
+          message: params[3],
+        });
+      }
     }
     return ls;
-  } catch (error) {
-    vscode.window.showErrorMessage(`执行 git 命令失败: ${error.message}`);
-    return null;
+  } catch (err) {
+    vscode.window.showErrorMessage(`git 命令: ${gitCommand}`);
+    throw new Error(`执行 git 命令失败: ${err.message}`);
   }
 }
 
@@ -83,6 +85,14 @@ function activate(context) {
   const disposable = vscode.commands.registerCommand(
     "work-diary.GetWorkDiary",
     async function () {
+      // 提示输入作者
+      let author = await vscode.window.showInputBox({
+        prompt: "作者 (不输入默认为当前git配置的用户名）",
+      });
+      if (!author) {
+        author = execSync("git config user.name").toString().trim();
+      }
+
       // 提示输入开始时间
       let begTime = await vscode.window.showInputBox({
         prompt: "开始时间 (格式: YYYY-MM-DD 不输入默认为7天前）",
@@ -105,14 +115,17 @@ function activate(context) {
       try {
         currentFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
       } catch (error) {
-        vscode.window.showErrorMessage(`请打开一个项目 `, error.message);
+        vscode.window.showInformationMessage(`请打开一个项目 `, error.message);
         return;
       }
 
-      let _ls = getGitLogJson(begTime, endTime, currentFolder);
-      if (!_ls) {
-        return;
+      let _ls = [];
+      try {
+        _ls = getGitLogJson(begTime, endTime, currentFolder, author);
+      } catch (err) {
+        vscode.window.showErrorMessage(err.message);
       }
+
       if (_ls.length === 0) {
         vscode.window.showInformationMessage("此时间段内，无提交记录。");
         return;
@@ -128,7 +141,7 @@ function activate(context) {
         // week 转为中文
         el.Week = convertWeek(el.Week);
       }
-      let cont = "";
+      let cont = `# 「${author}」的工作日志\n_${begTime}到${endTime}_\n\n---\n`;
       const dateMap = new Map();
       for (const el of _ls) {
         el.message = fmtMsg(el.message);
