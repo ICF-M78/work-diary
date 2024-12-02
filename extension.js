@@ -6,13 +6,13 @@ function getGitLogJson(begTime, endTime, currentFolder, author) {
   let gitCommand = "";
   try {
     // 为了避免提交记录中出现json关键符号
-    gitCommand = `git log --since="${begTime}" --until="${endTime}" --author="${author}" --no-merges --pretty=format:"<git-commit>author->%an|date->%ad|message->%s</git-commit>\n" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
+    gitCommand = `git log --since="${begTime}" --until="${endTime}" --author="${author}" --no-merges --pretty=format:"<git-commit>author->%an|date->%ad|message->%s</git-commit>;"`;
     let jsonStr = execSync(gitCommand, { cwd: currentFolder }).toString();
     if (!jsonStr) {
       throw new Error(`${author}在此时间段内，无提交记录。`);
     }
     // 正则
-    const regex1 = /<git-commit>(.*?)<\/git-commit>\n/g;
+    const regex1 = /<git-commit>(.*?)<\/git-commit>;/g;
     const _arr = jsonStr.match(regex1);
     if (!_arr) {
       throw new Error(`${author}在此时间段内，无提交记录。`);
@@ -23,12 +23,12 @@ function getGitLogJson(begTime, endTime, currentFolder, author) {
     const ls = [];
     for (const _str of _arr) {
       const regex2 =
-        /author->([\w]+)\|date->([0-9\-: a-zA-z]+)\|message->([\s\S]+)<\/git-commit>/g;
+        /author->([\w]+)\|date->([0-9\-: a-zA-Z+]+)\|message->([\s\S]+)<\/git-commit>/g;
       const params = regex2.exec(_str);
       if (params !== null) {
         ls.push({
           author: params[1],
-          date: params[2],
+          date: dayjs(params[2]).format("YYYY-MM-DD HH:mm:ss dddd"),
           message: params[3],
         });
       }
