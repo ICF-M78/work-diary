@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 function getGitLogJson(begTime, endTime, currentFolder) {
   try {
     let author = execSync("git config user.name").toString().trim();
-    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:"{\\"author\\": \\"%an\\",\\"date\\": \\"%ad\\", \\"message\\": \\"%s\\"}" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
+    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:'{"author": "%an","date": "%ad", "message": "%s"}' --date=format:'%Y-%m-%d %H:%M:%S %A'`;
     const stdout = execSync(gitCommand, { cwd: currentFolder }).toString();
     return stdout;
   } catch (error) {
