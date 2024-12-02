@@ -6,19 +6,19 @@ function getGitLogJson(begTime, endTime, currentFolder) {
   try {
     let author = execSync("git config user.name").toString().trim();
     // 为了避免提交记录中出现json关键符号
-    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:'<git-commit>author->%an|date->%ad|message->%s</git-commit>\n' --date=format:'%Y-%m-%d %H:%M:%S %A'`;
+    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:"<git-commit>author->%an|date->%ad|message->%s</git-commit>\n" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
     let jsonStr = execSync(gitCommand, { cwd: currentFolder }).toString();
     if (!jsonStr) {
-      throw new Error("没有找到提交记录");
+      throw new Error("此时间段内，无提交记录。");
     }
     // 正则
     const regex1 = /<git-commit>(.*?)<\/git-commit>\n/g;
     const _arr = jsonStr.match(regex1);
     if (!_arr) {
-      throw new Error("没有找到提交记录");
+      throw new Error("此时间段内，无提交记录。");
     }
     if (_arr.length === 0) {
-      throw new Error("没有找到提交记录");
+      throw new Error("此时间段内，无提交记录。");
     }
     const ls = [];
     for (const _str of _arr) {
@@ -100,8 +100,23 @@ function activate(context) {
       }
 
       // 获取当前项目的根目录
-      const currentFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+
+      let currentFolder = "";
+      try {
+        currentFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
+      } catch (error) {
+        vscode.window.showErrorMessage(`请打开一个项目 `, error.message);
+        return;
+      }
+
       let _ls = getGitLogJson(begTime, endTime, currentFolder);
+      if (!_ls) {
+        return;
+      }
+      if (_ls.length === 0) {
+        vscode.window.showInformationMessage("此时间段内，无提交记录。");
+        return;
+      }
       for (const el of _ls) {
         el.times = new Date(el.date).getTime();
       }
