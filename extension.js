@@ -5,7 +5,7 @@ const { execSync } = require("child_process");
 function getGitLogJson(begTime, endTime, currentFolder) {
   try {
     let author = execSync("git config user.name").toString().trim();
-    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:'{"author": "%an","date": "%ad", "message": "%s"}' --date=format:'%Y-%m-%d %H:%M:%S %A'`;
+    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:"{\\"author\\": \\"%an\\",\\"date\\": \\"%ad\\", \\"message\\": \\"%s\\"}" --date=format:"%Y-%m-%d %H:%M:%S %A"`;
     const stdout = execSync(gitCommand, { cwd: currentFolder }).toString();
     return stdout;
   } catch (error) {
@@ -78,10 +78,22 @@ function activate(context) {
       // 获取当前项目的根目录
       const currentFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
       let jsonStr = getGitLogJson(begTime, endTime, currentFolder);
+      if (!jsonStr) {
+        // 获取日志失败
+        vscode.window.showErrorMessage("获取日志为空，获取失败！");
+        return;
+      }
       // 使用正则把"}\n{"替换为"},{"
       jsonStr = jsonStr.replace(/}\n{/g, "},{");
       jsonStr = "[" + jsonStr + "]";
-      const _ls = JSON.parse(jsonStr);
+      let _ls = [];
+      try {
+        _ls = JSON.parse(jsonStr);
+      } catch (err) {
+        vscode.window.showErrorMessage(`git日志JSON.parse失败 ${err.message}`);
+        vscode.window.showErrorMessage(`git日志: ${jsonStr}`);
+        return;
+      }
 
       for (const el of _ls) {
         el.times = new Date(el.date).getTime();

@@ -2,7 +2,7 @@
   "name": "work-diary",
   "displayName": "Work Diary",
   "description": "根据提交记录，生成工作日志。",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "publisher": "wujingtao",
   "author": "wujingtao",
   "engines": {
