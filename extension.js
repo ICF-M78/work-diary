@@ -5,9 +5,33 @@ const { execSync } = require("child_process");
 function getGitLogJson(begTime, endTime, currentFolder) {
   try {
     let author = execSync("git config user.name").toString().trim();
-    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:'{"author": "%an","date": "%ad", "message": "%s"}' --date=format:'%Y-%m-%d %H:%M:%S %A'`;
-    const stdout = execSync(gitCommand, { cwd: currentFolder }).toString();
-    return stdout;
+    // 为了避免提交记录中出现json关键符号
+    const gitCommand = `git log --since=${begTime} --until=${endTime} --author=${author} --no-merges --pretty=format:'<git-commit>author->%an|date->%ad|message->%s</git-commit>\n' --date=format:'%Y-%m-%d %H:%M:%S %A'`;
+    let jsonStr = execSync(gitCommand, { cwd: currentFolder }).toString();
+    if (!jsonStr) {
+      throw new Error("没有找到提交记录");
+    }
+    // 正则
+    const regex1 = /<git-commit>(.*?)<\/git-commit>\n/g;
+    const _arr = jsonStr.match(regex1);
+    if (!_arr) {
+      throw new Error("没有找到提交记录");
+    }
+    if (_arr.length === 0) {
+      throw new Error("没有找到提交记录");
+    }
+    const ls = [];
+    for (const _str of _arr) {
+      const regex2 =
+        /author->([\w]+)\|date->([0-9\-: a-zA-z]+)\|message->([\s\S]+)<\/git-commit>/g;
+      const _arr2 = regex2.exec(_str);
+      ls.push({
+        author: _arr2[1],
+        date: _arr2[2],
+        message: _arr2[3],
+      });
+    }
+    return ls;
   } catch (error) {
     vscode.window.showErrorMessage(`执行 git 命令失败: ${error.message}`);
     return null;
@@ -77,24 +101,7 @@ function activate(context) {
 
       // 获取当前项目的根目录
       const currentFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
-      let jsonStr = getGitLogJson(begTime, endTime, currentFolder);
-      if (!jsonStr) {
-        // 获取日志失败
-        vscode.window.showErrorMessage("获取日志为空，获取失败！");
-        return;
-      }
-      // 使用正则把"}\n{"替换为"},{"
-      jsonStr = jsonStr.replace(/}\n{/g, "},{");
-      jsonStr = "[" + jsonStr + "]";
-      let _ls = [];
-      try {
-        _ls = JSON.parse(jsonStr);
-      } catch (err) {
-        vscode.window.showErrorMessage(`git日志JSON.parse失败 ${err.message}`);
-        vscode.window.showErrorMessage(`git日志: ${jsonStr}`);
-        return;
-      }
-
+      let _ls = getGitLogJson(begTime, endTime, currentFolder);
       for (const el of _ls) {
         el.times = new Date(el.date).getTime();
       }
